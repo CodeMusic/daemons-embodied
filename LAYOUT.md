@@ -17,8 +17,8 @@ the design book's Part 14, and each folder is marked when its first file lands.*
 | `practice/` | the trial harness; shown, tried, found; the night | to come |
 | `wrappers/_template/` | copy this to add a body | to come (B-5) |
 | `wrappers/sim/` | a body with no hardware | to come (B-3) |
-| `wrappers/pidog/` | the first body | to come (B-12) |
+| `wrappers/pidog/` | the first body | to come (B-13) |
 | `tools/` | bodycheck, install, the service files | to come (B-4) |
 | `tests/` | the checks | to come |
 
-THE BRAIN's interface is not kept here: it is pinned by tag from a repository of its own (B-36).
+THE BRAIN's interface is not kept here: it is pinned by tag from a repository of its own (B-35).
