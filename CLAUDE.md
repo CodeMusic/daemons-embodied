@@ -1,7 +1,8 @@
 # daemons-embodied -- working agreement
 
-A daemon in a robot body. **Nothing is built yet**; the design is reviewed (2026-11-24) and its tickets are B-1
-onward.
+A daemon in a robot body. The design is reviewed (2026-11-24) and its tickets are B-1 onward. **Phase A, the
+foundations, is being built** (B-2 to B-5: the sheet, the driver's calls, the simulated body, the body check, the
+wrapper to copy); no robot has moved yet. Tests: `python3 -m pytest` from this repository's root.
 
 ## Start here
 

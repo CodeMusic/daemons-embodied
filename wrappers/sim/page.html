@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulated body</title>
+<style>
+  :root {
+    --ground: #f4f1ea; --ink: #23201b; --soft: #6f695e; --line: #d9d3c6; --card: #fffdf8;
+    --bone: #2f4b7c; --joint: #c2571a; --foot: #1d7a55; --warn: #b3261e; --ok: #1d7a55;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #17161a; --ink: #ece8df; --soft: #a39d90; --line: #35323a; --card: #1f1e23;
+      --bone: #8fb0ea; --joint: #f0975a; --foot: #6fd0a4; --warn: #ff8a80; --ok: #6fd0a4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--ground); color: var(--ink);
+         font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 12px; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: 0.02em; }
+  .draft { font-size: 11px; letter-spacing: 0.12em; border: 1px solid var(--soft); color: var(--soft);
+           padding: 1px 6px; border-radius: 3px; }
+  .state { color: var(--soft); }
+  main { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); max-width: 1100px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width: 0; }
+  h2 { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); margin: 0 0 8px; }
+  svg { width: 100%; height: auto; display: block; }
+  .bone { stroke: var(--bone); stroke-width: 5; stroke-linecap: round; }
+  .far { opacity: 0.4; }
+  .trunk { stroke: var(--ink); stroke-width: 7; stroke-linecap: round; fill: none; stroke-linejoin: round; }
+  .knob { fill: var(--joint); }
+  .paw { fill: var(--foot); }
+  .earth { stroke: var(--line); stroke-width: 2; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-variant-numeric: tabular-nums; }
+  dt { color: var(--soft); } dd { margin: 0; overflow-wrap: anywhere; }
+  .warn { color: var(--warn); font-weight: 600; } .ok { color: var(--ok); }
+  .lights { display: flex; gap: 4px; margin-top: 4px; }
+  .lights i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--line); background: transparent; }
+  .hands { display: flex; flex-wrap: wrap; gap: 8px; }
+  button { font: inherit; color: var(--ink); background: var(--ground); border: 1px solid var(--soft);
+           border-radius: 6px; padding: 7px 11px; cursor: pointer; }
+  button:hover { border-color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  td { padding: 2px 6px 2px 0; } td:last-child { text-align: right; }
+  footer { color: var(--soft); font-size: 13px; margin-top: 12px; max-width: 1100px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="name">Simulated body</h1><span class="draft">DRAFT</span>
+  <span class="state" id="state">waiting for it</span>
+</header>
+<main>
+  <section><h2>From its left side</h2><svg id="side" viewBox="0 0 400 260" role="img" aria-label="the body from its left side"></svg></section>
+  <section><h2>From above</h2><svg id="top" viewBox="0 0 400 260" role="img" aria-label="the body from above"></svg></section>
+  <section>
+    <h2>What it is doing</h2>
+    <dl>
+      <dt>posture</dt><dd id="posture"></dd>
+      <dt>moving</dt><dd id="moving"></dd>
+      <dt>balance</dt><dd id="balance"></dd>
+      <dt>tilt</dt><dd id="tilt"></dd>
+      <dt>cell</dt><dd id="cell"></dd>
+      <dt>sound</dt><dd id="sound"></dd>
+      <dt>servo power</dt><dd id="power"></dd>
+      <dt>lights</dt><dd><span id="manner"></span><div class="lights" id="lights"></div></dd>
+    </dl>
+  </section>
+  <section>
+    <h2>What a hand can do to it</h2>
+    <div class="hands">
+      <button data-do='{"do":"tip","roll":70}'>Tip it onto its side</button>
+      <button data-do='{"do":"tip","pitch":-55}'>Tip it onto its nose</button>
+      <button data-do='{"do":"level"}'>Set it level</button>
+      <button data-do='{"do":"hand","m":0.08}'>A hand in front</button>
+      <button data-do='{"do":"hand","m":null}'>Take the hand away</button>
+      <button data-do='{"do":"pat","pad":"front"}'>Pat its head</button>
+      <button data-do='{"do":"pat","pad":null}'>Lift the hand</button>
+      <button data-do='{"do":"power","on":false}'>Servo power off</button>
+      <button data-do='{"do":"power","on":true}'>Servo power on</button>
+    </div>
+  </section>
+  <section><h2>Its joints, in degrees</h2><table id="joints"></table></section>
+</main>
+<footer>
+  It is drawn from its sheet's lengths and nothing else. The buttons are a hand on the body: none of them is one of
+  the driver's calls. It cannot say whether a gait walks.
+</footer>
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+function el(parent, tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  parent.appendChild(e); return e;
+}
+// metres to the drawing: 1 m is 1100 units; the body's middle sits at x = 200.
+const S = 1100;
+function draw(svg, fig, pick, groundY) {
+  svg.textContent = "";
+  if (groundY !== null) el(svg, "line", {x1: 10, y1: groundY, x2: 390, y2: groundY, class: "earth"});
+  const at = p => { const [h, v] = pick(p); return [200 + h * S, (groundY === null ? 130 : groundY) - v * S]; };
+  const far = line => groundY !== null && line.a[1] < 0 && line.b[1] < 0;   // the right side, seen from the left
+  for (const line of fig.lines.filter(far)) bone(svg, line, at, true);
+  const pts = fig.outline.map(at);
+  el(svg, "polygon", {points: pts.map(p => p.join(",")).join(" "), class: "trunk"});
+  for (const line of fig.lines.filter(l => !far(l))) bone(svg, line, at, false);
+}
+function bone(svg, line, at, far) {
+  const [x1, y1] = at(line.a), [x2, y2] = at(line.b);
+  if (Math.hypot(x2 - x1, y2 - y1) > 0.5) el(svg, "line", {x1, y1, x2, y2, class: "bone" + (far ? " far" : "")});
+  if (line.joint) el(svg, "circle", {cx: x1, cy: y1, r: 4, class: "knob" + (far ? " far" : "")});
+  if (line.foot) el(svg, "circle", {cx: x2, cy: y2, r: 5, class: "paw" + (far ? " far" : "")});
+}
+function show(s) {
+  $("name").textContent = s.name;
+  $("state").textContent = s.connected ? "connected" : "not connected";
+  $("posture").textContent = s.posture || "between postures";
+  $("moving").textContent = s.moving.length ? s.moving.join(", ") : "still";
+  $("balance").textContent = "roll " + s.roll_deg + "°, pitch " + s.pitch_deg + "°";
+  const over = s.tilt_limit_deg !== null && s.tilt_deg > s.tilt_limit_deg;
+  $("tilt").textContent = s.tilt_deg + "° of " + s.tilt_limit_deg + "°" + (over ? ": FALLEN" : "");
+  $("tilt").className = over ? "warn" : "ok";
+  $("cell").textContent = s.cell_v === null ? "none" : s.cell_v + " V, " + s.cell_percent + "%";
+  $("sound").textContent = s.sound || "quiet";
+  $("power").textContent = s.powered ? "on" : "OFF: nothing sent to its servos moves";
+  $("power").className = s.powered ? "" : "warn";
+  const lights = $("lights"); lights.textContent = "";
+  if (s.lights) {
+    $("manner").textContent = s.lights.colour ? s.lights.rhythm : "dark";
+    for (let i = 0; i < s.lights.count; i++) {
+      const dot = document.createElement("i");
+      if (s.lights.colour && s.lights.rhythm !== "dark") dot.style.background = "rgb(" + s.lights.colour.join(",") + ")";
+      lights.appendChild(dot);
+    }
+  } else $("manner").textContent = "none";
+  const table = $("joints"); table.textContent = "";
+  for (const id in s.pose) {
+    const row = table.insertRow();
+    row.insertCell().textContent = id; row.insertCell().textContent = s.pose[id].toFixed(1);
+  }
+  if (s.figure) {
+    draw($("side"), s.figure, p => [p[0], p[2]], 225);
+    draw($("top"), s.figure, p => [p[0], p[1]], null);
+  }
+}
+async function look() {
+  try { show(await (await fetch("/look")).json()); }
+  catch (e) { $("state").textContent = "it has gone away"; }
+}
+for (const b of document.querySelectorAll("button[data-do]")) {
+  b.addEventListener("click", async () => {
+    await fetch("/world", {method: "POST", headers: {"Content-Type": "application/json"}, body: b.dataset.do});
+    look();
+  });
+}
+look(); setInterval(look, 100);
+</script>
+</body>
+</html>

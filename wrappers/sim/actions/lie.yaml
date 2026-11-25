@@ -1,0 +1,14 @@
+name: LIE
+says: lie down
+origin: given
+uses: [legs]
+from: [lie, sit]
+to: lie
+flows: false
+class: gesture
+finish: true
+takes: []
+does:
+  keyframes:
+    - {ms: 900, pose: {lf_upper: 75, lf_lower: -60, rf_upper: 75, rf_lower: -60, lh_upper: 75, lh_lower: -60, rh_upper: 75, rh_lower: -60}}
+knows: {ms: 900, runs: 0, clean: 0}

@@ -1,0 +1,17 @@
+name: NOD
+says: nod, as a yes
+origin: given
+uses: [head]
+from: any
+to: same
+flows: true
+class: gesture
+finish: false
+takes: []
+does:
+  keyframes:
+    - {ms: 220, pose: {head_pitch: -22}}
+    - {ms: 220, pose: {head_pitch: 8}}
+    - {ms: 220, pose: {head_pitch: -22}}
+    - {ms: 240, pose: {head_pitch: 0}}
+knows: {ms: 900, runs: 0, clean: 0}

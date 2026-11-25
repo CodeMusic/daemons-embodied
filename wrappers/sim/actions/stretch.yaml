@@ -1,0 +1,16 @@
+name: STRETCH
+says: stretch, front paws out and chest down
+origin: given
+uses: [legs]
+from: stand
+to: stand
+flows: false
+class: gesture
+finish: true
+takes: []
+does:
+  keyframes:
+    - {ms: 700, pose: {lf_upper: 70, lf_lower: 40, rf_upper: 70, rf_lower: 40, lh_upper: 25, lh_lower: 35, rh_upper: 25, rh_lower: 35}}
+    - {ms: 600, pose: {lf_upper: 70, lf_lower: 40, rf_upper: 70, rf_lower: 40, lh_upper: 25, lh_lower: 35, rh_upper: 25, rh_lower: 35}}
+    - {ms: 700, pose: {lf_upper: 35, lf_lower: 25, rf_upper: 35, rf_lower: 25, lh_upper: 35, lh_lower: 25, rh_upper: 35, rh_lower: 25}}
+knows: {ms: 2000, runs: 0, clean: 0}

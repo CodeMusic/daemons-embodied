@@ -1,0 +1,14 @@
+name: SIT
+says: sit
+origin: given
+uses: [legs]
+from: [lie, sit, stand]
+to: sit
+flows: false
+class: gesture
+finish: true
+takes: []
+does:
+  keyframes:
+    - {ms: 900, pose: {lf_upper: 15, lf_lower: 55, rf_upper: 15, rf_lower: 55, lh_upper: 70, lh_lower: -40, rh_upper: 70, rh_lower: -40}}
+knows: {ms: 900, runs: 0, clean: 0}

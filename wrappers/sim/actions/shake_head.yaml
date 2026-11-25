@@ -1,0 +1,17 @@
+name: SHAKE_HEAD
+says: shake the head, as a no
+origin: given
+uses: [head]
+from: any
+to: same
+flows: true
+class: gesture
+finish: false
+takes: []
+does:
+  keyframes:
+    - {ms: 200, pose: {head_yaw: 30}}
+    - {ms: 300, pose: {head_yaw: -30}}
+    - {ms: 300, pose: {head_yaw: 30}}
+    - {ms: 200, pose: {head_yaw: 0}}
+knows: {ms: 1000, runs: 0, clean: 0}

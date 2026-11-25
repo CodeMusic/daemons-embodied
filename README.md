@@ -4,8 +4,10 @@
 sits or walks to you, because those movements are part of what it said. One body program for many bodies, and one
 small wrapper for each kind of body. The first body is the SunFounder PiDog.
 
-**Nothing here is built yet.** This repository was opened on 2026-11-25, with its design reviewed and its tickets
-written. Its first code is ticket B-2.
+**Its foundations are being built, and no robot has moved yet.** The sheet and the driver's ten calls (B-2) and a
+simulated body that draws itself in a browser page (B-3) are here, with their tests; the body check (B-4) and the
+wrapper to copy (B-5) are next. Run the tests with `python3 -m pytest` (Python 3.11 or later,
+`requirements-dev.txt`), and see the simulated body with `python3 -m wrappers.sim`.
 
 ## The design
 

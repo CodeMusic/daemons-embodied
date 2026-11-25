@@ -1,0 +1,12 @@
+name: PUSH_UP
+says: do two push-ups
+origin: given
+uses: [legs]
+from: stand
+to: stand
+flows: false
+class: gesture
+finish: true
+takes: []
+does: {native: push_up}
+knows: {ms: 1800, runs: 0, clean: 0}

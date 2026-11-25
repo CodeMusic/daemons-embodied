@@ -1,0 +1,19 @@
+name: WAG
+says: wag the tail
+origin: given
+uses: [tail]
+from: any
+to: same
+flows: true
+class: gesture
+finish: false
+takes: []
+does:
+  keyframes:
+    - {ms: 120, pose: {tail: 30}}
+    - {ms: 160, pose: {tail: -30}}
+    - {ms: 160, pose: {tail: 30}}
+    - {ms: 160, pose: {tail: -30}}
+    - {ms: 160, pose: {tail: 30}}
+    - {ms: 120, pose: {tail: 0}}
+knows: {ms: 880, runs: 0, clean: 0}

@@ -1,0 +1,16 @@
+name: TILT_HEAD
+says: tilt the head to one side, as when puzzled
+origin: given
+uses: [head]
+from: any
+to: same
+flows: true
+class: gesture
+finish: false
+takes: []
+does:
+  keyframes:
+    - {ms: 350, pose: {head_roll: 25}}
+    - {ms: 700, pose: {head_roll: 25}}
+    - {ms: 350, pose: {head_roll: 0}}
+knows: {ms: 1400, runs: 0, clean: 0}

@@ -1,0 +1,14 @@
+name: STAND
+says: stand up
+origin: given
+uses: [legs]
+from: [sit, stand]
+to: stand
+flows: false
+class: gesture
+finish: true
+takes: []
+does:
+  keyframes:
+    - {ms: 900, pose: {lf_upper: 35, lf_lower: 25, rf_upper: 35, rf_lower: 25, lh_upper: 35, lh_lower: 25, rh_upper: 35, rh_lower: 25}}
+knows: {ms: 900, runs: 0, clean: 0}

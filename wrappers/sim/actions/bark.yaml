@@ -1,0 +1,12 @@
+name: BARK
+says: bark once
+origin: given
+uses: [voice]
+from: any
+to: same
+flows: true
+class: sound
+finish: false
+takes: []
+does: {native: bark}
+knows: {ms: 500, runs: 0, clean: 0}

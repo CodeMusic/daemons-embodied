@@ -19,7 +19,7 @@
 | `turn/` | the daemon's turn, a client of the body program: `ears/`, `thinker/`, `voice/`, `words/`, `performance/` | to come |
 | `practice/` | the trial harness; shown, tried, found; the night | to come |
 | `wrappers/_template/` | copy this to add a body | to come (B-5) |
-| `wrappers/sim/` | a body with no hardware | to come (B-3) |
+| `wrappers/sim/` | a body with no hardware: its sheet, its ten actions, a driver that answers every call, the stick figure and the page it draws itself on (`python3 -m wrappers.sim`) | B-3 (2026-11-25) |
 | `wrappers/pidog/` | the first body | to come (B-13) |
 | `tools/` | bodycheck, install, the service files | to come (B-4) |
 | `tests/` | the checks: `python3 -m pytest` from the repository's root (`requirements-dev.txt`) | B-2 |

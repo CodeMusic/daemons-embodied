@@ -1,0 +1,61 @@
+# The simulated body: a body made only of this sheet. It has no hardware.
+#
+# Its lengths are the ones SunFounder publishes for the PiDog: an upper leg of 42 mm, a lower leg of 76 mm, on a
+# body 117 by 98 mm. Its neck, head and tail lengths are its own. Its angles are its own too, chosen to draw
+# plainly; they are NOT the PiDog's servo angles, which are measured on the bench (B-12).
+#
+#   upper leg   0 hangs straight down; positive swings it forward
+#   lower leg   0 is at a right angle behind the upper leg; positive opens the knee, negative folds it
+#
+# Angles are degrees, lengths are metres, speeds are degrees a second. Every word a person reads is DRAFT.
+
+body: sim
+name: Simulated body
+shape: quadruped
+maker: none
+joints:
+  - {id: lf_upper,   channel: legs, min: -90, max: 90, rest: 75,  top_speed: 428, feels: none}
+  - {id: lf_lower,   channel: legs, min: -90, max: 90, rest: -60, top_speed: 428, feels: none}
+  - {id: rf_upper,   channel: legs, min: -90, max: 90, rest: 75,  top_speed: 428, feels: none}
+  - {id: rf_lower,   channel: legs, min: -90, max: 90, rest: -60, top_speed: 428, feels: none}
+  - {id: lh_upper,   channel: legs, min: -90, max: 90, rest: 75,  top_speed: 428, feels: none}
+  - {id: lh_lower,   channel: legs, min: -90, max: 90, rest: -60, top_speed: 428, feels: none}
+  - {id: rh_upper,   channel: legs, min: -90, max: 90, rest: 75,  top_speed: 428, feels: none}
+  - {id: rh_lower,   channel: legs, min: -90, max: 90, rest: -60, top_speed: 428, feels: none}
+  - {id: head_yaw,   channel: head, min: -90, max: 90, rest: 0,   top_speed: 300, feels: none}
+  - {id: head_roll,  channel: head, min: -45, max: 45, rest: 0,   top_speed: 300, feels: none}
+  - {id: head_pitch, channel: head, min: -45, max: 45, rest: 0,   top_speed: 300, feels: none}
+  - {id: tail,       channel: tail, min: -90, max: 90, rest: 0,   top_speed: 500, feels: none}
+senses:
+  balance: {kind: balance, rate_hz: 20}
+  range:   {kind: range, min_m: 0.02, max_m: 4.0}
+  touch:   {kind: touch, pads: [front, rear], strokes: true}
+  ears:    {kind: sound_bearing, step_deg: 20}
+  eye:     {kind: sight}
+  cell:    {kind: cell, full_v: 8.4, low_v: 6.8, empty_v: 6.4}
+voice:  {speaker: true, microphone: true}
+lights: {kind: strip, count: 11}
+postures:
+  lie:   {lf_upper: 75, lf_lower: -60, rf_upper: 75, rf_lower: -60, lh_upper: 75, lh_lower: -60, rh_upper: 75, rh_lower: -60}
+  sit:   {lf_upper: 15, lf_lower: 55,  rf_upper: 15, rf_lower: 55,  lh_upper: 70, lh_lower: -40, rh_upper: 70, rh_lower: -40}
+  stand: {lf_upper: 35, lf_lower: 25,  rf_upper: 35, rf_lower: 25,  lh_upper: 35, lh_lower: 25,  rh_upper: 35, rh_lower: 25}
+settle: lie
+limits: {tilt_deg: 40, hold_s: 5, rest_ratio: 2.0}
+frame:
+  body: {length_m: 0.117, width_m: 0.098}
+  links:
+    - {id: lf_upper, parent: body,     at_m: [0.0585, 0.049, 0.0],   length_m: 0.042, joint: lf_upper, zero_deg: -90}
+    - {id: lf_lower, parent: lf_upper,                               length_m: 0.076, joint: lf_lower, zero_deg: -90, foot: true}
+    - {id: rf_upper, parent: body,     at_m: [0.0585, -0.049, 0.0],  length_m: 0.042, joint: rf_upper, zero_deg: -90}
+    - {id: rf_lower, parent: rf_upper,                               length_m: 0.076, joint: rf_lower, zero_deg: -90, foot: true}
+    - {id: lh_upper, parent: body,     at_m: [-0.0585, 0.049, 0.0],  length_m: 0.042, joint: lh_upper, zero_deg: -90}
+    - {id: lh_lower, parent: lh_upper,                               length_m: 0.076, joint: lh_lower, zero_deg: -90, foot: true}
+    - {id: rh_upper, parent: body,     at_m: [-0.0585, -0.049, 0.0], length_m: 0.042, joint: rh_upper, zero_deg: -90}
+    - {id: rh_lower, parent: rh_upper,                               length_m: 0.076, joint: rh_lower, zero_deg: -90, foot: true}
+    - {id: neck,      parent: body,      at_m: [0.0585, 0.0, 0.0],   length_m: 0.040, zero_deg: 50}
+    - {id: head_yaw,  parent: neck,                                  length_m: 0.0,   joint: head_yaw, axis: yaw, zero_deg: 0}
+    - {id: head_roll, parent: head_yaw,                              length_m: 0.0,   joint: head_roll, axis: roll}
+    - {id: head,      parent: head_roll,                             length_m: 0.050, joint: head_pitch, zero_deg: -50}
+    - {id: tail_root, parent: body,      at_m: [-0.0585, 0.0, 0.0],  length_m: 0.0,   zero_deg: 150}
+    - {id: tail,      parent: tail_root,                             length_m: 0.070, joint: tail, axis: yaw}
+actions: actions/
