@@ -1,0 +1,5 @@
+# Only the tests' settings live here. How the body program is installed on a body is ticket B-37.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

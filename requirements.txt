@@ -1,0 +1,2 @@
+# What the body program needs on a body. Python 3.11 or later.
+PyYAML>=6
