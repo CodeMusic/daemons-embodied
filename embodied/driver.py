@@ -22,6 +22,8 @@ Three rules bind every driver.
 2. The driver refuses a target outside the sheet's range itself, even though `Checked` already has. The two
    checks are kept in two places on purpose: write the driver's own in the wrapper, and do not share code.
 3. `stop()` is proved before anything else is written. The body check calls it in the middle of every action.
+   **It waits for nothing**: not for a lock another call holds, not for a move to finish, not for a reply from the
+   hardware that may never come. A driver that guards its hardware with a lock gives `stop()` a way round it.
 
 There is one more call, `command(raw)`, for whatever a body has that the sheet cannot say. `Checked` has no such
 call, so no action and nothing in the body program can reach it: only a developer's own code, holding the driver.

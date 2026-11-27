@@ -17,7 +17,8 @@ import math
 import random
 import threading
 from collections import deque
-from typing import Any, Mapping
+from contextlib import contextmanager
+from typing import Any, Iterator, Mapping
 
 from embodied.clock import Clock
 from embodied.driver import BaseDriver, Manner, Sound, Status
@@ -50,7 +51,8 @@ class Driver(BaseDriver):
     def __init__(self, sheet: Sheet, clock: Clock | None = None, powered: Any = True, page: Any = None, seed: Any = 0):
         super().__init__(sheet)
         self._clock = clock or Clock()
-        self._lock = threading.RLock()
+        self._lock = threading.RLock()  # held by every call but stop(), through _held
+        self._stops: deque[float] = deque()  # the moments stop() was asked for and not yet applied
         self._noise = random.Random(int(seed))
         self._connected = False
         self._powered = _flag(powered)
@@ -83,7 +85,7 @@ class Driver(BaseDriver):
     # ------------------------------------------------------------------------------------- the ten calls
 
     def connect(self) -> None:
-        with self._lock:
+        with self._held():
             self._connected = True
         if self._page_port is not None and self._page is None:
             from . import page
@@ -91,7 +93,7 @@ class Driver(BaseDriver):
             self._page = page.serve(self, self._page_port)
 
     def close(self) -> None:
-        with self._lock:
+        with self._held():
             if self._connected and self._powered:
                 # It has no servos to wait for: it is simply left settled.
                 now = self._clock.now()
@@ -104,7 +106,7 @@ class Driver(BaseDriver):
             self._page = None
 
     def status(self) -> Status:
-        with self._lock:
+        with self._held():
             now = self._clock.now()
             pose = self._pose(now)
             roll, pitch = self._lean(pose)
@@ -123,15 +125,20 @@ class Driver(BaseDriver):
             )
 
     def stop(self) -> None:
-        """Halt every channel now. Safe from any thread at any moment, connected or not."""
-        with self._lock:
-            now = self._clock.now()
-            for id, path in self._path.items():
-                self._path[id] = [(now, _at(path, now))]
-            self._sound = None
+        """Halt every channel now. Safe from any thread at any moment, connected or not.
+
+        It waits for nothing, not even for the call that holds the body: it writes its moment down and returns.
+        Every call that holds the body applies what was written first (`_held`), as of that moment, so whatever
+        was under way then is halted where it was then, however late the body is next looked at."""
+        self._stops.append(self._clock.now())  # one step, which no other thread can come between
+        if self._lock.acquire(blocking=False):  # nobody holds the body: halt it here
+            try:
+                self._halt()
+            finally:
+                self._lock.release()
 
     def settle(self) -> None:
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             now = self._clock.now()
             pose = self._pose(now)
@@ -142,7 +149,7 @@ class Driver(BaseDriver):
         self._refuse_outside_range(targets)
         if isinstance(ms, bool) or not isinstance(ms, int) or ms < 1:
             raise Refused("a move's time is a whole number of milliseconds")
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             self._send(targets, ms / 1000.0, self._clock.now())
 
@@ -155,7 +162,7 @@ class Driver(BaseDriver):
         frames, sound = routine
         for _, pose in frames:
             self._refuse_outside_range(pose)
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             now = self._clock.now()
             begins = now  # when the frame being laid down begins
@@ -181,7 +188,7 @@ class Driver(BaseDriver):
         sense = self.sheet.sense(name) if isinstance(name, str) else None
         if sense is None:
             raise Refused(f"it has no sense '{name}'")
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             now = self._clock.now()
             kind = sense.kind
@@ -214,23 +221,23 @@ class Driver(BaseDriver):
         raise Refused(f"it cannot read a '{sense.kind}'")
 
     def play(self, sound: Sound) -> None:
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             self._sound = ("speech", self._clock.now() + sound.ms / 1000.0)
 
     def hear(self) -> Sound | None:
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             return self._heard.popleft() if self._heard else None
 
     def light(self, manner: Manner) -> None:
-        with self._lock:
+        with self._held():
             self._must_be_connected()
             self._manner = manner
 
     def command(self, raw: Any) -> Any:
         """Reached only by a developer's own code. It writes the command down and does nothing to the body."""
-        with self._lock:
+        with self._held():
             self.commanded.append(raw)
         return {"heard": raw}
 
@@ -238,7 +245,7 @@ class Driver(BaseDriver):
 
     def tip(self, roll_deg: float = 0.0, pitch_deg: float = 0.0) -> None:
         """Push it over by this much, as a hand would."""
-        with self._lock:
+        with self._held():
             self._tip = (max(-180.0, min(180.0, float(roll_deg))), max(-180.0, min(180.0, float(pitch_deg))))
 
     def level(self) -> None:
@@ -247,7 +254,7 @@ class Driver(BaseDriver):
 
     def hand(self, m: float | None) -> None:
         """Hold something this far in front of it; None takes it away."""
-        with self._lock:
+        with self._held():
             self._hand_m = None if m is None else max(0.0, float(m))
 
     def pat(self, pad: str | None = None, stroke: str | None = None) -> None:
@@ -257,33 +264,33 @@ class Driver(BaseDriver):
             raise ValueError(f"it has no pad '{pad}'")
         if stroke not in (None, "forward", "back"):
             raise ValueError("a stroke is forward or back")
-        with self._lock:
+        with self._held():
             self._pat = (pad, stroke if pad is not None else None)
 
     def sound_from(self, deg: float | None) -> None:
         """A sound from this many degrees round from its nose; None is quiet."""
-        with self._lock:
+        with self._held():
             self._bearing = None if deg is None else float(deg) % 360
 
     def say_to_it(self, sound: Sound) -> None:
         """Something for its microphone to hear."""
-        with self._lock:
+        with self._held():
             self._heard.append(sound)
 
     def power(self, on: bool) -> None:
         """Its servo power switch. With it off, what is sent to the servos moves nothing."""
-        with self._lock:
+        with self._held():
             self._powered = bool(on)
 
     def cell(self, v: float) -> None:
         """Set its cell to this many volts."""
-        with self._lock:
+        with self._held():
             if self._cell is not None:
                 self._cell = (float(v), self._clock.now())
 
     def look(self) -> dict:
         """Everything the page draws."""
-        with self._lock:
+        with self._held():
             now = self._clock.now()
             pose = self._pose(now)
             roll, pitch = self._lean(pose)
@@ -322,6 +329,24 @@ class Driver(BaseDriver):
         return state
 
     # ------------------------------------------------------------------------------------------- inside
+
+    @contextmanager
+    def _held(self) -> Iterator[None]:
+        """Hold the body for one call. Every call but stop() does, and a stop that was asked for is applied
+        before the call does anything else."""
+        with self._lock:
+            self._halt()
+            yield
+
+    def _halt(self) -> None:
+        """With the body held: halt it as of the earliest moment stop() wrote down."""
+        if not self._stops:
+            return
+        # Only the holder takes moments off, so each one counted here is still there to take.
+        at = min(self._stops.popleft() for _ in range(len(self._stops)))
+        for id, path in self._path.items():
+            self._path[id] = [(at, _at(path, at))]
+        self._sound = None
 
     def _must_be_connected(self) -> None:
         if not self._connected:
